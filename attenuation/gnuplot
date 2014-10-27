@@ -1,4 +1,0 @@
-# plots the output of one of these scripts
-
-set terminal png
-plot "-" with yerrorlines
