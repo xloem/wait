@@ -18,7 +18,7 @@ power_tmp="$(mktemp)"
 console_tmp="$(mktemp)"
 logfile_tmp="$(mktemp)"
 
-echo "Logging $TAG-$FREQINTERVAL-$FREQMIN-$FREQMAX-$TOTALTIME-$TIMEINTERVAL-$TIMEMIN-..."
+echo "Logging $TAG-$FREQINTERVAL-$FREQMIN-$FREQMAX-$GAIN-$TOTALTIME-$TIMEINTERVAL-$TIMEMIN-..."
 
 echo '>' rtl_power -f "$FREQMIN:$FREQMAX:$FREQINTERVAL" -i "$TIMEINTERVAL" -g $GAIN -e "$TOTALTIME" "$power_tmp" > "$console_tmp"
 RTL_LOGFILE="$logfile_tmp" rtl_power -f "$FREQMIN:$FREQMAX:$FREQINTERVAL" -i "$TIMEINTERVAL" -g $GAIN -e "$TOTALTIME" "$power_tmp" 2>>"$console_tmp" || exit 1
@@ -40,7 +40,7 @@ mv "$console_tmp" "$CONSOLE_TXT"
 echo "$CONSOLE_TXT"
 
 if [ -e "$logfile_tmp" ]; then
-	cat "$logfile_tmp" | zcat > "$LOGFILE_GZ"
+	cat "$logfile_tmp" | gzip > "$LOGFILE_GZ"
 	echo "$LOGFILE_GZ"
 fi
 
