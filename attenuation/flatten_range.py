@@ -43,9 +43,9 @@ for line in open(path):
     for f,d in zip(frange(low, high, step), dbm):
         sums[f] += d*weight
         counts[f] += weight
-        if ! mins[f] or mins[f] < d:
+        if f not in mins or mins[f] < d:
             mins[f] = d
-        if ! maxs[f] or maxs[f] > d:
+        if f not in maxs or maxs[f] > d:
             maxs[f] = d
 
 ave = defaultdict(float)
