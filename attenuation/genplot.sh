@@ -11,7 +11,7 @@ TOTALTIME="${4:-15m}"
 
 GAIN="${5:-50}"
 
-DATADIR=web/data
+DATADIR=../web/data
 mkdir -p $DATADIR
 
 power_tmp="$(mktemp)"
