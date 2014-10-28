@@ -21,7 +21,12 @@ logfile_tmp="$(mktemp)"
 echo "Logging $TAG-$FREQINTERVAL-$FREQMIN-$FREQMAX-$GAIN-$TOTALTIME-$TIMEINTERVAL-$TIMEMIN-..."
 
 echo '>' rtl_power -f "$FREQMIN:$FREQMAX:$FREQINTERVAL" -i "$TIMEINTERVAL" -g $GAIN -e "$TOTALTIME" "$power_tmp" > "$console_tmp"
-RTL_LOGFILE="$logfile_tmp" rtl_power -f "$FREQMIN:$FREQMAX:$FREQINTERVAL" -i "$TIMEINTERVAL" -g $GAIN -e "$TOTALTIME" "$power_tmp" 2>>"$console_tmp" || exit 1
+RTL_LOGFILE="$logfile_tmp" rtl_power -f "$FREQMIN:$FREQMAX:$FREQINTERVAL" -i "$TIMEINTERVAL" -g $GAIN -e "$TOTALTIME" "$power_tmp" 2>> "$console_tmp" || {
+	cat "$console_tmp" 1>&2
+	rm "$power_tmp"
+	rm "$console_tmp"
+	exit 1
+}
 
 TIMEMAX="$(date +%s)"
 name="$TAG-$FREQINTERVAL-$FREQMIN-$FREQMAX-$GAIN-$TOTALTIME-$TIMEINTERVAL-$TIMEMIN-$TIMEMAX"
@@ -35,6 +40,8 @@ RTL_POWER_CSV="$namepfx"rtl_power.csv
 RTL_POWER_PNG="$namepfx"rtl_power.png
 FLATTEN_RANGE_CSV="$namepfx"flatten_range.csv
 FLATTEN_RANGE_PNG="$namepfx"flatten_range.png
+REPORT_HTML_LOCAL="$name-"report.html
+REPORT_HTML="$DATADIR/$REPORT_HTML_LOCAL"
 
 mv "$console_tmp" "$CONSOLE_TXT"
 echo "$CONSOLE_TXT"
@@ -59,3 +66,7 @@ echo "$FLATTEN_RANGE_CSV"
 	echo e
 } | gnuplot > "$FLATTEN_RANGE_PNG"
 echo "$FLATTEN_RANGE_PNG"
+
+sed 's/{pfx}/'"$name-"'/g' < report_template.html > "$REPORT_HTML"
+
+echo '<p>Individual log report: <a href="'"$REPORT_HTML_LOCAL"'">'"$name"'</a></p>' >> $DATADIR/index.html
