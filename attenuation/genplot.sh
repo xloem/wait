@@ -35,38 +35,19 @@ mkdir -p "$DATADIR"
 namepfx="$DATADIR/$name-"
 
 CONSOLE_TXT="$namepfx"console.txt
-LOGFILE_GZ="$namepfx"logfile.gz
+LOGFILE_RAW="$namepfx"logfile.raw
 RTL_POWER_CSV="$namepfx"rtl_power.csv
-RTL_POWER_PNG="$namepfx"rtl_power.png
-FLATTEN_RANGE_CSV="$namepfx"flatten_range.csv
-FLATTEN_RANGE_PNG="$namepfx"flatten_range.png
-REPORT_HTML_LOCAL="$name-"report.html
-REPORT_HTML="$DATADIR/$REPORT_HTML_LOCAL"
+REPORT_HTML="$namepfx"report.html
 
 mv "$console_tmp" "$CONSOLE_TXT"
 echo "$CONSOLE_TXT"
 
 if [ -e "$logfile_tmp" ]; then
-	cat "$logfile_tmp" | gzip > "$LOGFILE_GZ"
-	echo "$LOGFILE_GZ"
+	mv "$logfile_tmp" "$LOGFILE_RAW"
+	echo "$LOGFILE_RAW"
 fi&
 
 mv "$power_tmp" "$RTL_POWER_CSV"
 echo "$RTL_POWER_CSV"
-./heatmap.py "$RTL_POWER_CSV" "$RTL_POWER_PNG"
-echo "$RTL_POWER_PNG"
 
-./flatten_range.py "$RTL_POWER_CSV" > "$FLATTEN_RANGE_CSV"
-echo "$FLATTEN_RANGE_CSV"
-{
-	echo 'set terminal png'
-	echo 'set datafile separator comma'
-	echo 'plot "-" with yerrorlines'
-	cat "$FLATTEN_RANGE_CSV"
-	echo e
-} | gnuplot > "$FLATTEN_RANGE_PNG"
-echo "$FLATTEN_RANGE_PNG"
-
-sed 's/{pfx}/'"$name-"'/g' < report_template.html > "$REPORT_HTML"
-
-echo '<p>Individual log report: <a href="'"$REPORT_HTML_LOCAL"'">'"$name"'</a></p>' >> $DATADIR/index.html
+make "$REPORT_HTML"
