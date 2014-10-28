@@ -49,7 +49,7 @@ echo "$CONSOLE_TXT"
 if [ -e "$logfile_tmp" ]; then
 	cat "$logfile_tmp" | gzip > "$LOGFILE_GZ"
 	echo "$LOGFILE_GZ"
-fi
+fi&
 
 mv "$power_tmp" "$RTL_POWER_CSV"
 echo "$RTL_POWER_CSV"
