@@ -3,11 +3,11 @@ TAG=${1:-${TAG:?}}
 
 FREQMIN=${FREQMIN:-24M}
 FREQMAX=${FREQMAX:-1700M}
-FREQINTERVAL="${2:-1M}"
+FREQINTERVAL="${2:-250k}"
 
 TIMEMIN="$(date +%s)"
-TIMEINTERVAL="${3:-30}"
-TOTALTIME="${4:-15m}"
+TIMEINTERVAL="${3:-60}"
+TOTALTIME="${4:-30m}"
 
 GAIN="${5:-50}"
 
@@ -16,7 +16,7 @@ mkdir -p $DATADIR
 
 power_tmp="$(mktemp)"
 console_tmp="$(mktemp)"
-logfile_tmp="$(mktemp)"
+logfile_tmp=".$(mktemp)"
 
 echo "Logging $TAG-$FREQINTERVAL-$FREQMIN-$FREQMAX-$GAIN-$TOTALTIME-$TIMEINTERVAL-$TIMEMIN-..."
 
@@ -45,7 +45,7 @@ echo "$CONSOLE_TXT"
 if [ -e "$logfile_tmp" ]; then
 	mv "$logfile_tmp" "$LOGFILE_RAW"
 	echo "$LOGFILE_RAW"
-fi&
+fi
 
 mv "$power_tmp" "$RTL_POWER_CSV"
 echo "$RTL_POWER_CSV"
