@@ -30,21 +30,21 @@ def frange(start, stop, step):
         i += 1
 
 for line in open(leftpath):
-    line = line.strip().split(', ')
-    f = int(line[0])
+    line = line.strip().split(',')
+    f = float(line[0])
     aves[f] = float(line[1])
     mins[f] = float(line[2])
     maxs[f] = float(line[3])
 
 for line in open(rightpath):
-    line = line.strip().split(', ')
-    f = int(line[0])
+    line = line.strip().split(',')
+    f = float(line[0])
     aves[f] -= float(line[1])
     # subtract max from min and min from max for largest extent
     mins[f] -= float(line[3])
     maxs[f] -= float(line[2])
 
-for f in sorted(ave):
-    print(','.join([str(f), str(ave[f]), str(mins[f]), str(maxs[f])]))
+for f in sorted(aves):
+    print(','.join([str(f), str(aves[f]), str(mins[f]), str(maxs[f])]))
     
 
