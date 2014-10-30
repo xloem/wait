@@ -1,10 +1,18 @@
 .SECONDARY:
 
+LDLIBS=-lrtlsdr -lusb-1.0
+
+log2xmp: log2xmp.o readlogfile.o
+log2pcm: log2pcm.o readlogfile.o
+
 newplot-%: genplot.sh
 	./genplot.sh "$*"
 
-%logfile.bz2:%logfile.raw
-	ionice nice bzip2 -9 < $< > $@&
+%logfile.flac:%logfile.raw log2pcm
+	pv < $< | ./log2pcm | flac --sign=unsigned --bps=8 --channels=2 --sample-rate=655350 --endian=little - > $@
+
+%logfile.xmp.gz:%logfile.raw log2xmp
+	pv < $< | ./log2xmp | gzip > $@
 
 %rtl_power.png:%rtl_power.csv heatmap.py
 	./heatmap.py $< $@
@@ -24,7 +32,7 @@ echo 'plot "$<" using 1:4 with lines';\
 echo 'plot "$<" using 1:2 with lines';\
 } | gnuplot > $@
 
-%report.html:report_template.html Makefile %flatten_range.png %rtl_power.png %logfile.bz2
+%report.html:report_template.html Makefile %flatten_range.png %rtl_power.png %logfile.xmp.gz
 	attenuation_contents="$$(for attenuation in *--$*attenuation_range.png $*-*attenuation_range.png;\
 do if ! [ -e "$$attenuation" ]; then continue; fi; name="$${attenuation%-attenuation_range.png}"; name="$${name##*/}"; \
   sed 's!{left}!'"$${name%--*}"'!g; s!{right}!'"$${name#*--}"'!g' < attenuation_template.html;\
