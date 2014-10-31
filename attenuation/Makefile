@@ -1,19 +1,19 @@
 .SECONDARY:
 
 newplot-%: genplot.sh
-	./genplot.sh "$*"
+	sh genplot.sh "$*"
 
 %logfile.bz2:%logfile.raw
 	ionice nice bzip2 -9 < $< > $@&
 
 %rtl_power.png:%rtl_power.csv heatmap.py
-	./heatmap.py $< $@
+	python heatmap.py $< $@
 
 %flatten_range.csv:%rtl_power.csv flatten_range.py
-	./flatten_range.py $< > $@
+	python flatten_range.py $< > $@
 
 %-attenuation_range.csv:
-	both="$*"; left="$${both%--*}"; right="$${both#*--}"; ./attenuation.py "$$left"-flatten_range.csv "$$right"-flatten_range.csv > "$@"
+	both="$*"; left="$${both%--*}"; right="$${both#*--}"; python attenuation.py "$$left"-flatten_range.csv "$$right"-flatten_range.csv > "$@"
 
 %_range.png:%_range.csv Makefile
 	{ \
@@ -24,7 +24,7 @@ echo 'plot "$<" using 1:4 with lines';\
 echo 'plot "$<" using 1:2 with lines';\
 } | gnuplot > $@
 
-%report.html:report_template.html Makefile %flatten_range.png %rtl_power.png %logfile.bz2
+%report.html:report_template.html Makefile %flatten_range.png %rtl_power.png
 	attenuation_contents="$$(for attenuation in *--$*attenuation_range.png $*-*attenuation_range.png;\
 do if ! [ -e "$$attenuation" ]; then continue; fi; name="$${attenuation%-attenuation_range.png}"; name="$${name##*/}"; \
   sed 's!{left}!'"$${name%--*}"'!g; s!{right}!'"$${name#*--}"'!g' < attenuation_template.html;\
