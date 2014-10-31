@@ -17,7 +17,7 @@ mkdir -p $DATADIR
 power_tmp="$(mktemp)"
 console_tmp="$(mktemp)"
 logfile_tmp=".$(mktemp)"
-mkdir -p "${logfile%/*}"
+mkdir -p "${logfile_tmp%/*}"
 
 echo "Logging $TAG-$FREQINTERVAL-$FREQMIN-$FREQMAX-$GAIN-$TOTALTIME-$TIMEINTERVAL-$TIMEMIN-..."
 
