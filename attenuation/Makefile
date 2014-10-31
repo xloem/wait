@@ -18,7 +18,7 @@ newplot-%: genplot.sh
 %_range.png:%_range.csv Makefile
 	{ \
 echo 'set terminal png size 1024,512';\
-echo 'set datafile separator comma';\
+echo 'set datafile separator ","';\
 echo 'plot "$<" using 1:3 with lines';\
 echo 'plot "$<" using 1:4 with lines';\
 echo 'plot "$<" using 1:2 with lines';\
