@@ -1,18 +1,73 @@
 .SECONDARY:
 
 LDLIBS=-lrtlsdr -lusb-1.0
+DATADIR=../web/data
+FNWEBDIR=../freenet
 
 log2xmp: log2xmp.o readlogfile.o
 log2pcm: log2pcm.o readlogfile.o
 
 newplot-%: genplot.sh
+	touch $(DATADIR)/$*-report.html
 	sh genplot.sh "$*"
 
-%logfile.flac:%logfile.raw log2pcm
-	pv < $< | ./log2pcm | flac --sign=unsigned --bps=8 --channels=2 --sample-rate=655350 --endian=little - > $@
+LOGGEDSETS=$(patsubst $(DATADIR)/%-logfile.raw,%,$(wildcard $(DATADIR)/*-logfile.raw))
+DATASETS=$(patsubst $(DATADIR)/%-rtl_power.csv,%,$(wildcard $(DATADIR)/*-rtl_power.csv))
 
-%logfile.xmp.gz:%logfile.raw log2xmp
-	pv < $< | ./log2xmp | gzip > $@
+show-reports:
+	#$(DATASETS)
+
+report-all: $(patsubst %,$(DATADIR)/%-report.html,$(DATASETS))
+data-all: $(patsubst %,$(DATADIR)/%-logfile.flac,$(LOGGEDSETS)) $(patsubst %,$(DATADIR)/%-logfile.xmp,$(LOGGEDSETS))
+
+freenet-prep-main: $(patsubst %,%-freenet-data,$(LOGGEDSETS)) $(patsubst %,%-freenet-putsskdir,$(DATASETS))
+	mkdir -p $(FNWEBDIR)/web-main/data
+	cp $(DATADIR)/index.html $(FNWEBDIR)/web-main/data/index.html
+	#for ssk in $(DATASETS); do sed -ie "s!$$ssk!$$(sed -ne 's/.*Request URI: \(SSK.*\/\)/\1/p')$$ssk/!g" $(FNWEBDIR)/web-main/data/index.html; done
+	for chk in $(DATASETS); do sed -ie "s!$${chk}!$$(sed -ne 's/.*URI: \(CHK.*\/\).*/\1/p')!g" $(FNWEBDIR)/web-main/data/index.html; done
+
+%-freenet: %-freenet-data %-freenet-report
+
+%-freenet-report: $(DATADIR)/%-report.html %-freenet-data
+	mkdir -p "$(FNWEBDIR)/report-$*"
+	for component in $(DATADIR)/$*-*.png $(DATADIR)/$*-*.csv; do ln -sf "$$(readlink -f "$*")" "$(FNWEBDIR)/report-$*"; done
+	cp "$(DATADIR)/$*-report.html" "$(FNWEBDIR)/report-$*-report.html"
+	for component in $$(cd $(DATADIR); echo $*-*.chk.putfile); do chk=$$(sed -ne 's/^URI: \(CHK.*\)/\/\1/p' $(DATADIR)/$$component); sed -ie 's/$${component%.chk.putfile}/$${chk}/g' $(FNWEBDIR)/report-$*-report.html; done
+
+#%-freenet-data: $(DATADIR)/%-logfile.xmp.chk.putfile $(DATADIR)/%-logfile.flac.chk.putfile
+%-freenet-data: $(DATADIR)/%-logfile.xmp.chk.putfile
+	echo
+
+%/index.html: report-all Makefile
+	{ cd $*;\
+for report in *report.html;\
+do echo '<p>Individual log report: <a href="'"$$report"'">'"$${report%.html}"'</a></p>';\
+done;\
+} > $@
+
+%-freenet-putsskdir: $(FNWEBDIR)/%.ssk %-freenet-report
+	{ echo "PUTSSKDIR:$$(sed -ne 's/.*Insert URI: \(SSK.*\/\)/\1/p')$*#$$(readlink -f $(FNWEBDIR)/report-$*)"; echo QUIT; } | nc 127.0.0.1 2323
+
+%-freenet-putdir: %-freenet-report %(FNWEBDIR)/%.chk.putdir
+
+%.ssk: %/*
+	{ echo MAKESSK; echo QUIT; } | nc 127.0.0.1 2323 | tee /dev/stderr | tail -n 10 > "$@" && [ -s $@ ]
+
+%.chk.putfile: %
+	{ echo PUTFILE:$$(readlink -f "$*"); echo QUIT; } | nc 127.0.0.1 2323 | tee /dev/stderr | tail -n 5 > "$@" && grep "URI: CHK" "$@"
+
+%.chk.putdir: %/*
+	{ echo PUTDIR:$$(readlink -f "$*"); echo QUIT; } | nc 127.0.0.1 2323 | tee /dev/stderr | tail -n 3 > "$@" && grep "URI: CHK" "$@"
+
+%.csv.gz: %.csv
+	gzip > "$@" < "$<"
+
+
+%logfile.flac:%logfile.raw %logfile.xmp log2pcm
+	pv < $< | ./log2pcm | flac --best --sign=unsigned --bps=8 --channels=2 --sample-rate=655350 --endian=little - > $@
+
+%logfile.xmp:%logfile.raw log2xmp
+	pv < $< | ./log2xmp > $@
 
 %rtl_power.png:%rtl_power.csv heatmap.py
 	python heatmap.py $< $@
@@ -21,30 +76,23 @@ newplot-%: genplot.sh
 	python flatten_range.py $< > $@
 
 %-attenuation_range.csv:
-	both="$*"; left="$${both%--*}"; right="$${both#*--}"; python attenuation.py "$$left"-flatten_range.csv "$$right"-flatten_range.csv > "$@"
+	both="$*"; left="$${both%--*}"; right="$${both%/*}/$${both#*--}"; python attenuation.py "$$left"-flatten_range.csv "$$right"-flatten_range.csv > "$@"
 
-%_range.png:%_range.csv Makefile
+%_range.png:%_range.csv
 	{ \
 echo 'set terminal png size 1024,512';\
 echo 'set datafile separator ","';\
-echo 'plot "$<" using 1:3 with lines';\
-echo 'plot "$<" using 1:4 with lines';\
-echo 'plot "$<" using 1:2 with lines';\
+echo 'set grid back';\
+echo 'file="$<"';\
+echo 'plot file using 1:3 ps 0 title "min", file using 1:4 ps 0 title "max", file using 1:2 pt 5 ps 0.2 title "avg"';\
 } | gnuplot > $@
 
-%report.html:report_template.html Makefile %flatten_range.png %rtl_power.png %logfile.xmp.gz
-	attenuation_contents="$$(for attenuation in *--$*attenuation_range.png $*-*attenuation_range.png;\
+%report.html:report_template.html %flatten_range.png %rtl_power.png
+	attenuation_contents="$$(item="$*"; itempath=$${item%/*}; item=$${item##*/}; for attenuation in $$itempath/*--$${item}attenuation_range.png $$itempath/$${item}-*attenuation_range.png;\
 do if ! [ -e "$$attenuation" ]; then continue; fi; name="$${attenuation%-attenuation_range.png}"; name="$${name##*/}"; \
-  sed 's!{left}!'"$${name%--*}"'!g; s!{right}!'"$${name#*--}"'!g' < attenuation_template.html;\
+  sed 's!{left}!'"$${name%--*}"'!g; s!{right}!'"$${name#*--}"'!g' < attenuation_template.html || exit 1;\
 done)";\
 pfx="$*"; pfx=$${pfx##*/}; attenuation_contents="$$(echo $${attenuation_contents})"; \
 sed 's!{pfx}!'"$$pfx"'!g; s`{attenuation_template}`'"$${attenuation_contents//\&/\\&}"'`g' < report_template.html > $@
 
 
-
-%/index.html: %/*report.html Makefile
-	{ cd $*;\
-for report in *report.html;\
-do echo '<p>Individual log report: <a href="'"$$report"'">'"$${report%.html}"'</a></p>';\
-done;\
-} > $@

@@ -20,30 +20,29 @@
   readily-available items.  This is where I begin.</p>
   <p><a href="data/index.html">Individual Data Logs</a></p>
 
+  <h4>Needed:</h4>
+  <ul>
+  <li>Attenuation and shielding information from a peer-reviewed journal.</li>
+  <li>Credible information on organized stalking, radio hacking, targetting of individuals, post-9/11 gang/homeland security behavior, even biohacking and mind control.</li>
+  </ul>
+
   <h4>Links and General Information</h4>
 
   <p>My first dongle for this project was sold by <a
   href="http://www.rtl-sdr.com/">RTL-SDR Blog</a>, Amazon product <a
   href="http://www.amazon.com/gp/product/B00MWGV16M">B00MWGV16M</a></p>
 
-  <p>Freenet: <a href="http://127.0.0.1:8888/USK@G3DMuLD~qLYzjccFOl7b9Je~tUX5CR6LpghVcTK7JD4,7oszS9u1aIyIox3WNV0DY8in5N9B3uuNnah-2DHMxss,AQACAAE/cacm37/0/">Why Cryptosystems Fail</a></p>
   <p>World Wide Web: superkuh's personal list of <a href="http://superkuh.com/rtlsdr.html">rtl-sdr tricks</a></p>
   <p>World Wide Web: kmkeen's pages for <a href="http://kmkeen.com/rtl-power/">rtl_power</a> and <a href="http://kmkeen.com/rtl-demod-guide/">rtl_fm</a></p>
   <p>World Wide Web: Oliver Jowett's <a href="https://github.com/mutability/rtl-sdr">mutability repository</a> containing rtl-sdr modifications to <a href="http://lists.osmocom.org/pipermail/osmocom-sdr/2014-August/001353.html">extend the tuning range</a></p>
   <p>World Wide Web: <a href="http://www.gbppr.org/">Green Bay Professional Packet Radio</a> long time radio hackers</p>
   <p>World Wide Web: Kaira's use of this dongle for passive radar, interferometry, etc including <a href="http://kaira.sgo.fi/2013/09/passive-radar-with-16-dual-coherent.html">tracking airplanes from signal reflection</a></p>
   <p>World Wide Web: Aluminum <a href="http://erewhon.superkuh.com/gnuradio/tapeshielding.jpg">tape shielding</a>.  Kapton tape is placed underneath to protect the device.</p>
-
-  <h5>Data Format for Raw RTL-SDR Dumps</h5>
-  <ul>
-  <li> First four bytes: uint32_t size of device structure </li>
-  <li> A stream of one of the following: </li>
-  <ul>
-    <li> 1 byte LOG_DATA=00: A block of I/Q data received from the device.  4 bytes uint32_t data length, and then that many bytes of data.  1 byte I, 1 byte Q, repeat.  Data is 0-255 unsigned, centered around 127.</li>
-    <li> 1 byte LOG_TIME=01: The current time from epoch follows as a struct timespec.  This will be 4 bytes seconds, then 4 bytes nanoseconds.</li>
-    <li> 1 byte LOG_STRUCT=02: A change in device state.  The current device state follows as a struct rtlsdr_dev.  This is also a rtlsdr_dev_t which can be passed into the librtlsdr c functions and queried.  The length of this data is the first 4 bytes in the file.  I think the current tuned frequency is in MHz as a 4 byte unsigned value 128 bytes into the structure.</li>
-  </ul>
-  </ul>
-
+  <p>Patent US4871883 mentions high-quality shielding braided around cables in 3 layers with the middle layer polycrystalline such as mu-metal or metallic glass used in high-noise-sensitivity applications.  Separating the layers with insulation may provide greater shielding.  Ferrite (iron) dust is often mixed with plastic or some compound for one layer.</p>
+  <p>Patent US5045637 describes a 2cm layer of iron entirely enclosing a space as giving 13 dB attenuation from 100 gauss, and describes a much lighter method involving layering two different materials, one with high magnetic permeability and one with magnetic high flux density.</p>
+  <p>Introduction to Magnetic Materials, B. D. Cullity, Chap 2.8: High magnetic permeability sheets such as Nickel-Iron alloy are used for magnetic shielding in electronics.  These materials absorb field in faces perpendicular to the field direction -- concentric cylinders work better than thick ones.</p>
+  <p>General review of conventional magnetic shielding in <a href="http://iopscience.iop.org/0022-3727/20/9/001/refs">Convection Magnetic Shielding, T J Sumner, 1987</a></p>
+  <p>Freenet: <a href="http://127.0.0.1:8888/USK@G3DMuLD~qLYzjccFOl7b9Je~tUX5CR6LpghVcTK7JD4,7oszS9u1aIyIox3WNV0DY8in5N9B3uuNnah-2DHMxss,AQACAAE/cacm37/0/">Why Cryptosystems Fail</a></p>
+  <p>Freenet: <a href="http://127.0.0.1:8888/USK@yfAQXNfkUI3g5ghjRoRTMm2s2J8DBM9WuKJYqtkfTXc,goO5PVCW80RYnqGrhvFefEpVdYJkY0k~6hm1OGEPhjA,AQACAAE/Are You Targeted/6/">Jeremy Radlow: Are You Targeted?</a></p>
  </body>
 </html>
