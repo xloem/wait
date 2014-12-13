@@ -179,7 +179,7 @@ for line in raw_data():
     line = [s.strip() for s in line.strip().split(',')]
     #line = [line[0], line[1]] + [float(s) for s in line[2:] if s]
     line = [s for s in line if s]
-
+    #print(line)
     low  = int(line[2]) + args.offset_freq
     high = int(line[3]) + args.offset_freq
     step = float(line[4])
