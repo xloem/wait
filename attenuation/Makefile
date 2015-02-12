@@ -72,24 +72,30 @@ done;\
 %rtl_power.png:%rtl_power.csv heatmap.py
 	python heatmap.py $< $@
 
-%flatten_range.csv:%rtl_power.csv flatten_range.py
-	python flatten_range.py $< > $@
+#%downsample_range.csv:%rtl_power.csv downsample_power.py
+#	python downsample_power.py $< > $@
 
-%-attenuation_range.csv:
-	both="$*"; left="$${both%--*}"; right="$${both%/*}/$${both#*--}"; python attenuation.py "$$left"-flatten_range.csv "$$right"-flatten_range.csv > "$@"
+#%flatten_range.csv:%rtl_power.csv flatten_range.py
+#	python flatten_range.py $< > $@
 
-%_range.png:%_range.csv
+%flatten_range.csv:%rtl_power.csv downsample_power.py
+	python downsample_power.py $< > $@
+
+%-attenuation_range.csv: Makefile attenuation.py downsample_power.py
+	both="$*"; left="$${both%--*}-flatten_range.csv"; right="$${both%/*}/$${both#*--}-flatten_range.csv"; $(MAKE) "$$left" "$$right" && python attenuation.py "$$left" "$$right" > "$@"
+
+%_range.png:%_range.csv Makefile
 	{ \
 echo 'set terminal png size 1024,512';\
 echo 'set datafile separator ","';\
 echo 'set grid back';\
 echo 'file="$<"';\
-echo 'plot file using 1:3 ps 0 title "min", file using 1:4 ps 0 title "max", file using 1:2 pt 5 ps 0.2 title "avg"';\
+echo 'plot file using 1:3 ps 0 title "min" with points, file using 1:4 ps 0 title "max" with points, file using 1:2 lw 2 title "avg" with lines';\
 } | gnuplot > $@
 
-%report.html:report_template.html %flatten_range.png %rtl_power.png
+%report.html:report_template.html %flatten_range.png %rtl_power.png %*.png Makefile
 	attenuation_contents="$$(item="$*"; itempath=$${item%/*}; item=$${item##*/}; for attenuation in $$itempath/*--$${item}attenuation_range.png $$itempath/$${item}-*attenuation_range.png;\
-do if ! [ -e "$$attenuation" ]; then continue; fi; name="$${attenuation%-attenuation_range.png}"; name="$${name##*/}"; \
+do if ! [ -e "$$attenuation" ]; then continue; fi; $(MAKE) "$$attenuation" 1>&2; name="$${attenuation%-attenuation_range.png}"; name="$${name##*/}"; \
   sed 's!{left}!'"$${name%--*}"'!g; s!{right}!'"$${name#*--}"'!g' < attenuation_template.html || exit 1;\
 done)";\
 pfx="$*"; pfx=$${pfx##*/}; attenuation_contents="$$(echo $${attenuation_contents})"; \
