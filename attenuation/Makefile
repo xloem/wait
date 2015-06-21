@@ -72,17 +72,28 @@ done;\
 %rtl_power.png:%rtl_power.csv heatmap.py
 	python heatmap.py $< $@
 
-#%downsample_range.csv:%rtl_power.csv downsample_power.py
-#	python downsample_power.py $< > $@
+%downsample_range.csv:%rtl_power.csv downsample_power.py
+	python3 downsample_power.py $< > $@
 
-#%flatten_range.csv:%rtl_power.csv flatten_range.py
-#	python flatten_range.py $< > $@
+%flatten_range.csv:%rtl_power.csv flatten_range.py Makefile
+	python flatten_range.py $< > $@
 
-%flatten_range.csv:%rtl_power.csv downsample_power.py
-	python downsample_power.py $< > $@
+#%flatten_range.csv:%rtl_power.csv downsample_power.py
+#	python3 downsample_power.py $< > $@
 
 %-attenuation_range.csv: Makefile attenuation.py downsample_power.py
-	both="$*"; left="$${both%--*}-flatten_range.csv"; right="$${both%/*}/$${both#*--}-flatten_range.csv"; $(MAKE) "$$left" "$$right" && python attenuation.py "$$left" "$$right" > "$@"
+	both="$*"; left="$${both%--*}-downsample_range.csv"; right="$${both%/*}/$${both#*--}-downsample_range.csv"; $(MAKE) "$$left" "$$right" && python attenuation.py "$$left" "$$right" > "$@"
+
+%-attenuation_gnuplot_test: Makefile
+	both="$*"; left="$${both%--*}-flatten_range.csv"; right="$${both%/*}/$${both#*--}-flatten_range.csv"; $(MAKE) "$$left" "$$right" && { \
+echo 'set terminal qt size 7200,400';\
+echo 'set datafile separator ","';\
+echo 'set grid back';\
+echo 'set xtics 50000000';\
+echo 'left="'"$$left"'"';\
+echo 'right="'"$$right"'"';\
+echo 'plot left using 1:3 with lines lt rgb "red", left using 1:4 with lines lt rgb "red", right using 1:3 with lines lt rgb "blue", right using 1:4 with lines lt rgb "blue"';\
+} | gnuplot -persist -
 
 %_range.png:%_range.csv Makefile
 	{ \
@@ -93,7 +104,7 @@ echo 'file="$<"';\
 echo 'plot file using 1:3 ps 0 title "min" with points, file using 1:4 ps 0 title "max" with points, file using 1:2 lw 2 title "avg" with lines';\
 } | gnuplot > $@
 
-%report.html:report_template.html %flatten_range.png %rtl_power.png %*.png Makefile
+%report.html:report_template.html %downsample_range.png %rtl_power.png %*.png Makefile
 	attenuation_contents="$$(item="$*"; itempath=$${item%/*}; item=$${item##*/}; for attenuation in $$itempath/*--$${item}attenuation_range.png $$itempath/$${item}-*attenuation_range.png;\
 do if ! [ -e "$$attenuation" ]; then continue; fi; $(MAKE) "$$attenuation" 1>&2; name="$${attenuation%-attenuation_range.png}"; name="$${name##*/}"; \
   sed 's!{left}!'"$${name%--*}"'!g; s!{right}!'"$${name#*--}"'!g' < attenuation_template.html || exit 1;\
