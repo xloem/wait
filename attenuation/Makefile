@@ -92,7 +92,7 @@ echo 'set grid back';\
 echo 'set xtics 50000000';\
 echo 'left="'"$$left"'"';\
 echo 'right="'"$$right"'"';\
-echo 'plot left using 1:3 with lines lt rgb "red", left using 1:4 with lines lt rgb "red", right using 1:3 with lines lt rgb "blue", right using 1:4 with lines lt rgb "blue"';\
+echo 'plot left using 1:3 title "'"$$left"'" with lines lt rgb "red", left using 1:4 notitle with lines lt rgb "red", right using 1:3 title "'"$$right"'" with lines lt rgb "blue", right using 1:4 notitle with lines lt rgb "blue"';\
 } | gnuplot -persist -
 
 %_range.png:%_range.csv Makefile
