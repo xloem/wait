@@ -41,10 +41,7 @@ void readlogfile(FILE * file,
 				handle_data(data, datalen >> 1);
 			break;
 		case LOG_TIME:
-			fread(&sec, sizeof(sec), 1, file);
-			fread(&nsec, sizeof(nsec), 1, file);
-			time.tv_sec = sec;
-			time.tv_nsec = nsec;
+			fread(&time, sizeof(time), 1, file);
 			if (NULL != handle_time)
 				handle_time(time);
 			break;
@@ -54,7 +51,7 @@ void readlogfile(FILE * file,
 				handle_struct(dev);
 			break;
 		default:
-			fprintf(stderr, "!! Unexpected rtl logfile op 0x%02x after op 0x%02x !!\n", op, last_op);
+			fprintf(stderr, "0x%x: !! Unexpected rtl logfile op 0x%02x after op 0x%02x !!\n", ftell(file), op, last_op);
 			return;
 		}
 		last_op = op;
