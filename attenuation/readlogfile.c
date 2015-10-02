@@ -8,7 +8,7 @@
 
 
 
-void readlogfile(FILE * file,
+int readlogfile(FILE * file,
                  void (*handle_data)(uint8_t(*)[2],size_t),
 		 void (*handle_time)(struct timespec),
 		 void (*handle_struct)(rtlsdr_dev_t *dev))
@@ -52,8 +52,9 @@ void readlogfile(FILE * file,
 			break;
 		default:
 			fprintf(stderr, "0x%x: !! Unexpected rtl logfile op 0x%02x after op 0x%02x !!\n", ftell(file), op, last_op);
-			return;
+			return -1;
 		}
 		last_op = op;
 	}
+	return 0;
 }

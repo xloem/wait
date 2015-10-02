@@ -10,6 +10,5 @@ int main(int argc, const char ** argv)
 	FILE * file = stdin;
 	if (argc == 2)
 		file = fopen(argv[1], "rb");
-	readlogfile(file, handle_data, NULL, NULL);
-	return 0;
+	return readlogfile(file, handle_data, NULL, NULL);
 }

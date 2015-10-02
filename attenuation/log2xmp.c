@@ -107,11 +107,12 @@ void tail()
 
 int main(int argc, const char ** argv)
 {
+	int err;
 	FILE * file = stdin;
 	if (argc == 2)
 		file = fopen(argv[1], "rb");
 	head();
-	readlogfile(file, handle_data, handle_time, handle_struct);
+	err = readlogfile(file, handle_data, handle_time, handle_struct);
 	tail();
-	return 0;
+	return err;
 }
